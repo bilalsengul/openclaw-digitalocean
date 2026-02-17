@@ -1,0 +1,51 @@
+# ═══════════════════════════════════════════════════════════════════
+# 🦞 Docker Ignore — keep secrets and junk out of the image
+# ═══════════════════════════════════════════════════════════════════
+# Without this, `docker build` sends EVERYTHING to the daemon,
+# including .env (secrets!), .git/ (huge!), and test files.
+
+# ─── Secrets ────────────────────────────────────────────────────
+.env
+*.env.local
+*.env.production
+
+# Keep the example template in the image
+!example.env
+
+# ─── Version control ────────────────────────────────────────────
+.git
+.gitignore
+
+# ─── Installer (not needed inside the container) ────────────────
+install.sh
+deploy.sh
+install-learnings.md
+
+# ─── Documentation ──────────────────────────────────────────────
+README.md
+*.md
+# But keep skill docs and data markdown
+!skills/**/*.md
+!data/**/*.md
+
+# ─── Tests ──────────────────────────────────────────────────────
+tests/
+test/
+*_test.py
+test_*.py
+
+# ─── OS and editor ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ─── Python cache ───────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ─── Node ───────────────────────────────────────────────────────
+node_modules/
