@@ -59,6 +59,23 @@ JSON
   echo "  $GW_TOKEN"
   echo ""
 
+  # ── Gradient AI provider (conditional) ─────────────────────────
+  # If GRADIENT_API_KEY is set, inject the full model catalog from
+  # /etc/openclaw/gradient-provider.json (29 models, all providers).
+  # This MUST run BEFORE `openclaw doctor --fix` so the doctor
+  # validates the complete config (not just the skeleton).
+  if [ -n "${GRADIENT_API_KEY:-}" ]; then
+    echo "  🔧 Configuring Gradient AI provider..."
+    jq --arg key "$GRADIENT_API_KEY" \
+       --slurpfile gp /etc/openclaw/gradient-provider.json \
+       '. * $gp[0] | .models.providers.gradient.apiKey = $key' \
+       "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
+       && mv "$STATE_DIR/openclaw.json.tmp" "$STATE_DIR/openclaw.json"
+    echo "  ✓ Gradient AI configured (29 models, default: openai-gpt-oss-120b)"
+  else
+    echo "  ℹ️  GRADIENT_API_KEY not set — configure a model provider via the UI"
+  fi
+
   # ── Let OpenClaw apply auto-detected fixes ─────────────────────
   openclaw doctor --fix 2>/dev/null || true
 
@@ -73,21 +90,6 @@ JSON
   done
 
   echo "  ✓ openclaw.json created"
-
-  # ── Gradient AI provider (conditional) ─────────────────────────
-  # If GRADIENT_API_KEY is set, inject the full model catalog from
-  # /etc/openclaw/gradient-provider.json (29 models, all providers).
-  if [ -n "${GRADIENT_API_KEY:-}" ]; then
-    echo "  🔧 Configuring Gradient AI provider..."
-    jq --arg key "$GRADIENT_API_KEY" \
-       --slurpfile gp /etc/openclaw/gradient-provider.json \
-       '. * $gp[0] | .models.providers.gradient.apiKey = $key' \
-       "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
-       && mv "$STATE_DIR/openclaw.json.tmp" "$STATE_DIR/openclaw.json"
-    echo "  ✓ Gradient AI configured (29 models, default: openai-gpt-oss-120b)"
-  else
-    echo "  ℹ️  GRADIENT_API_KEY not set — configure a model provider via the UI"
-  fi
 fi
 
 # ── 2. Always: sync skills and data ─────────────────────────────
