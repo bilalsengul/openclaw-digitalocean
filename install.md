@@ -80,7 +80,7 @@
 ---
 
 ## Phase 4: Host Caddy Setup (The Trick)
-**Objective**: Setup Caddy on the host for valid IP-based HTTPS (1-Click Style).
+**Objective**: Setup Caddy on the host for valid IP-based HTTPS (1-Click Style) with Basic Auth security.
 
 1.  **Install Caddy**:
     *   *Action*:
@@ -93,7 +93,12 @@
         apt-get install -y caddy
         ```
 
-2.  **Configure Caddyfile**:
+2.  **Generate Security Credentials**:
+    *   *Action (Password)*: `openssl rand -base64 12` -> Capture as `DASHBOARD_PASS`.
+    *   *Action (Hash)*: `caddy hash-password --plaintext <DASHBOARD_PASS>` -> Capture as `PASS_HASH`.
+    *   *User*: Set username to `admin`.
+
+3.  **Configure Caddyfile**:
     *   *Action*: Write to `/etc/caddy/Caddyfile`:
         ```caddy
         <DROPLET_IP> {
@@ -103,11 +108,16 @@
                     profile shortlived
                 }
             }
+            
+            basic_auth {
+                admin <PASS_HASH>
+            }
+
             reverse_proxy localhost:18789
         }
         ```
 
-3.  **Restart Caddy**:
+4.  **Restart Caddy**:
     *   *Action*: `systemctl restart caddy`.
     *   *Verification*: `systemctl status caddy`.
 
@@ -150,8 +160,8 @@
     *   *Pass Criteria*: Page loads, Green Lock (Valid Cert), No "Privacy Error".
 
 4.  **Final Report**:
-    *   Output the **Dashboard URL** and **Gateway Token** to the user.
-    *   Remind them to check email for pairing requests if they try to log in.
+    *   Output the **Dashboard URL**, **Gateway Token**, **Username** (`admin`), and **Password** (`DASHBOARD_PASS`) to the user.
+    *   **IMPORTANT**: Emphasize that these credentials are required to access the site.
 
 ---
 **Troubleshooting Notes**:
