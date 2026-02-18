@@ -23,7 +23,7 @@
 
 ## 🤖 Built for AI Agents (Claude Code, Antigravity, etc.)
 
-**"Finally, a deployment guide that speaks binary."** — *The Pioneer Lobster* 🦞
+**"I taught the robots to read, so you don't have to write bash."** — *The Pioneer Lobster* 🦞
 
 This repository is designed to be consumed by **AI Coding Agents**. It replaces brittle shell scripts with **AI Runbooks** (`install.md`, `update_deployment.md`) — declarative markdown files that your AI agent can read, understand, and execute step-by-step.
 
