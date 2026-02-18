@@ -43,7 +43,8 @@ Whether you're deploying your first Droplet or your fiftieth, these notes will s
   │   .env     │ ────────────────▶│  Droplet (Ubuntu)    │
   │   code     │                  │  ┌──────────────────┐│
   │   install  │                  │  │ Docker Container  ││
-  │   .sh      │                  │  │  ┌─────────────┐ ││
+  │   .md      │                  │  │  ┌─────────────┐ ││
+
   │            │                  │  │  │  OpenClaw    │ ││
   └────────────┘                  │  │  │  Gateway     │ ││
                                   │  │  │  + Skills    │ ││
@@ -55,7 +56,8 @@ Whether you're deploying your first Droplet or your fiftieth, these notes will s
 
 **The flow:**
 1. You fill out `.env` with your API keys and project config
-2. `install.sh` uses `doctl` to create a Droplet, harden it, and deploy your code
+2. The AI Agent follows `install.md` to create a Droplet, harden it, and deploy your code
+
 3. Your OpenClaw project runs inside a Docker container
 4. You access the OpenClaw UI dashboard to configure channels and manage agents
 5. All state persists in a Docker volume at `/home/openclaw/.openclaw`
@@ -99,7 +101,7 @@ ssh root@$IP 'cloud-init status --wait > /dev/null 2>&1 || sleep 10'
 ```
 
 > [!WARNING]
-> **sshd restarts during cloud-init.** Your SSH connection may drop mid-command. That's why all remote commands should use a retry wrapper (see the `remote_cmd` function in `install.sh`).
+> **sshd restarts during cloud-init.** Your SSH connection may drop mid-command. That's why critical steps should be wrapped in retry loops.
 
 ### SSH Retry Pattern
 
@@ -123,7 +125,7 @@ The Pioneer Lobster learned this one the hard way — after a deployment that "s
 
 ## 3. Security Hardening
 
-This is the section the Pioneer Lobster is most proud of. Every item below is applied automatically by `install.sh`.
+This is the section the Pioneer Lobster is most proud of. Every item below is applied automatically by `install.md` (the AI Runbook).
 
 ### 3.1 UFW Firewall
 
@@ -178,7 +180,7 @@ dpkg-reconfigure -f noninteractive unattended-upgrades
 This enables automatic installation of security patches for Ubuntu packages. Your Droplet will stay patched without manual intervention.
 
 > [!NOTE]
-> Unattended-upgrades will **not** update Docker images or your application code. Those require manual updates via `install.sh --update` or `deploy.sh`.
+> Unattended-upgrades will **not** update Docker images or your application code. Those require manual updates via `deploy.sh`.
 
 ### 3.4 SSH Hardening
 
@@ -398,7 +400,7 @@ After deployment, the OpenClaw UI is available at:
 https://<droplet-ip>
 ```
 
-Caddy serves as a reverse proxy, providing automatic HTTPS with a real **Let's Encrypt certificate** — even for bare IP addresses. The `install.sh` script automatically injects the Droplet's IP as the `SITE_ADDRESS` environment variable, which Caddy uses to request the certificate.
+Caddy serves as a reverse proxy, providing automatic HTTPS with a real **Let's Encrypt certificate** — even for bare IP addresses. The Runbook automatically relies on the Caddy `internal` issuer or Host setup.
 
 > [!TIP]
 > To use a custom domain instead, point your domain's DNS to the Droplet IP, then set `SITE_ADDRESS=your-domain.com` in `.env` and restart: `docker compose restart caddy`.
@@ -613,8 +615,8 @@ The Pioneer Lobster has explored both routes. Here's when to use each:
 | **Security** | ✅ Full hardening | ✅ Full hardening (we match their features) |
 | **Custom Python skills** | ⚠️ Manual setup | ✅ Built-in (Dockerfile) |
 | **Custom Dockerfile** | ❌ Not applicable | ✅ Full control |
-| **Update mechanism** | `/opt/update-openclaw.sh` | `install.sh --update` or `deploy.sh` |
-| **AI agent friendly** | ⚠️ Interactive wizard | ✅ Non-interactive, env-var driven |
+| **Update mechanism** | `/opt/update-openclaw.sh` | `deploy.sh` (or `install.md`) |
+| **AI agent friendly** | ⚠️ Interactive wizard | ✅ Non-interactive, AI Runbook |
 | **Auditable** | ⚠️ Packer scripts only | ✅ Full source code |
 
 ### What the DO 1-Click Does That We Don't
@@ -682,7 +684,7 @@ Before going live, the Pioneer Lobster recommends verifying:
 ✅ .env NOT baked into Docker image
 ```
 
-Run `install.sh` and all of these are applied automatically. But always verify:
+Use `install.md` (AI Runbook) and all of these are applied automatically. But always verify:
 
 ```bash
 ssh root@<droplet-ip>

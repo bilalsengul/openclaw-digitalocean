@@ -142,7 +142,7 @@ The installer will display your **Magic Link**, **Username**, and **Password** a
 
 | File | Purpose |
 |------|---------|
-| `install.sh` | Creates Droplet, installs Host Caddy, checks security, deploys app |
+| `install.md` | **AI Deployment Runbook** (replaces legacy script) |
 | `Dockerfile` | Multi-stage build: Node.js + Python + OpenClaw |
 | `docker-compose.yml` | Container orchestration for the application logic |
 | `docker-entrypoint.sh` | First-run config, Gradient AI injection, skill sync |
@@ -214,7 +214,9 @@ The installer supports fully non-interactive deployment via environment variable
 ```bash
 export DROPLET_REGION=fra1
 export DROPLET_SSH_KEY_IDS=12345
-bash install.sh
+# Provide install.md to your agent with these variables set
+# The agent will execute the runbook without asking for input
+
 ```
 
 This makes it suitable for AI-driven workflows where an agent handles deployment.

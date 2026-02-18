@@ -7,8 +7,8 @@
 # Usage:
 #   cd /opt/openclaw && bash deploy.sh
 #
-# For remote deploys from your local machine, use:
-#   bash install.sh --update
+# For remote deploys from your local machine, refer to:
+#   install.md (Phase 5: Application Deployment)
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 

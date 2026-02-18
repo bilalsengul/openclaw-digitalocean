@@ -4,7 +4,7 @@
 # Serves the OpenClaw UI dashboard over HTTPS with a real
 # Let's Encrypt certificate — even for bare IP addresses.
 #
-# The {$SITE_ADDRESS} variable is set automatically by install.sh
+# The {$SITE_ADDRESS} variable was set automatically by the legacy install.sh
 # using the Droplet's public IP. You can also set it manually:
 #
 #   SITE_ADDRESS=207.154.231.139     (IP with Let's Encrypt)
