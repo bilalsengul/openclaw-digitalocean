@@ -100,20 +100,21 @@ cp example.env .env
 # Optionally: GRADIENT_API_KEY for 29 AI models
 ```
 
-### 4. Deploy
+### 4. Deploy (AI Runbook)
 
-```bash
-# Validate first (no resources created)
-bash install.sh --dry-run
+This project uses an **AI Deployment Runbook** (`install.md`) instead of a brittle shell script.
 
-# Create the Droplet and deploy
-bash install.sh
+**If you are an AI Agent:**
+1.  Read `install.md`.
+2.  Execute the steps sequentially using your tools (`doctl`, `ssh`, etc.).
+3.  Handle any transient errors (apt locks, network glitches) intelligently.
 
-# Update an existing deployment
-bash install.sh --update
-```
+**If you are a Human:**
+Paste this prompt into your AI coding assistant (Cursor, Windsurf, etc.):
 
-The script creates a hardened Droplet, deploys your Docker containers, configures Gradient AI (if key provided), and walks you through pairing — all in one command.
+> "Read install.md and deploy this project to DigitalOcean for me. My secrets are in .env."
+
+*(Legacy script available at `scripts/legacy_install.sh` if needed)*
 
 ---
 
