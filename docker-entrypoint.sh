@@ -4,6 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # Runs on every container start. On first boot, configures:
 # - openclaw.json (gateway, models, tools)
+# - Gateway authentication token (printed to logs for agent to read)
 # - Exec allowlist for skill scripts
 #
 # Configure messaging channels (Telegram, WhatsApp, etc.) via the
@@ -45,11 +46,6 @@ if [ ! -f "$STATE_DIR/openclaw.json" ]; then
 }
 JSON
 
-  # NOTE: Gateway auth token is NOT generated here.
-  # The deploying AI agent sets it post-boot via:
-  #   docker exec <container> openclaw config set gateway.auth.token <TOKEN>
-  # This avoids race conditions between entrypoint and CLI config changes.
-
   # ── Gradient AI provider (conditional) ─────────────────────────
   # If GRADIENT_API_KEY is set, inject the full model catalog from
   # /etc/openclaw/gradient-provider.json (29 models, all providers).
@@ -69,6 +65,19 @@ JSON
 
   # ── Let OpenClaw apply auto-detected fixes ─────────────────────
   openclaw doctor --fix 2>/dev/null || true
+
+  # ── Generate gateway auth token (AFTER doctor --fix) ───────────
+  # SECURITY: This prevents unauthorized access to the gateway API.
+  # Generated AFTER doctor --fix to prevent the doctor from stripping it.
+  # The deploying agent reads this token from container logs post-boot.
+  GW_TOKEN=$(head -c 32 /dev/urandom | base64 | tr -d '=/+' | head -c 32)
+  jq --arg t "$GW_TOKEN" '.gateway.auth.token = $t | .gateway.auth.mode = "token"' \
+    "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
+    && mv "$STATE_DIR/openclaw.json.tmp" "$STATE_DIR/openclaw.json"
+  echo "  ✓ Gateway token generated"
+  echo ""
+  echo "  OPENCLAW_GATEWAY_TOKEN=$GW_TOKEN"
+  echo ""
 
   # ── Configure exec allowlist ───────────────────────────────────
   # SECURITY: Only allow specific scripts, not arbitrary commands.

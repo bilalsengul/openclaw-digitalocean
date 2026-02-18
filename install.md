@@ -152,20 +152,14 @@
 1.  **Wait for Health**:
     *   Wait 20-30 seconds for the container to boot.
 
-2.  **Configure Gateway Token**:
+2.  **Read Gateway Token** (generated automatically by the entrypoint on first boot):
     *   *Action*:
         ```bash
-        # Generate a strong token
-        export TOKEN=$(openssl rand -hex 16)
-        
-        # Set it in the running container (applies live, no restart needed)
-        ssh root@<DROPLET_IP> "docker exec <PROJECT_NAME> openclaw config set gateway.auth.token $TOKEN"
+        # Extract the token from the container logs
+        export TOKEN=$(ssh root@<DROPLET_IP> "docker logs <PROJECT_NAME> 2>&1 | grep 'OPENCLAW_GATEWAY_TOKEN=' | tail -1 | cut -d= -f2")
+        echo "TOKEN=$TOKEN"
         ```
-    *   *Verification*: Read back the token to confirm it was persisted:
-        ```bash
-        ssh root@<DROPLET_IP> "docker exec <PROJECT_NAME> openclaw config get gateway.auth.token"
-        ```
-    *   *If the readback does not match*, retry the `config set` command.
+    *   *Validation*: Ensure `$TOKEN` is not empty. If it is, the container may still be booting — wait and retry.
 
 3.  **Visual Check**:
     *   *Action*: Navigate the browser to `https://<DROPLET_IP>/`.
