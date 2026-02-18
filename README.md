@@ -110,7 +110,7 @@ This project uses an **AI Deployment Runbook** (`install.md`) instead of a britt
 3.  Handle any transient errors (apt locks, network glitches) intelligently.
 
 **If you are a Human:**
-Paste this prompt into your AI coding assistant (Cursor, Windsurf, etc.):
+Paste this prompt into your AI coding assistant:
 
 > "Read install.md and deploy this project to DigitalOcean for me. My secrets are in .env."
 

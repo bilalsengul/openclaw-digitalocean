@@ -1,7 +1,7 @@
 # 🦞 OpenClaw AI Deployment Runbook
 
 **Goal**: Deploy a hardened, secure OpenClaw instance with valid HTTPS on DigitalOcean.
-**Executor**: AI Agent (Model: Claude 3.5 Sonnet or similar)
+**Executor**: AI Agent
 **Tools Required**: `doctl`, `ssh`, `scp`, `git`
 
 ---
