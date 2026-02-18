@@ -1,0 +1,21 @@
+# ═══════════════════════════════════════════════════════════════════
+# 🦞 Caddy — Reverse proxy with automatic TLS
+# ═══════════════════════════════════════════════════════════════════
+# Serves the OpenClaw UI dashboard over HTTPS with a real
+# Let's Encrypt certificate — even for bare IP addresses.
+#
+# The {$SITE_ADDRESS} variable is set automatically by install.sh
+# using the Droplet's public IP. You can also set it manually:
+#
+#   SITE_ADDRESS=207.154.231.139     (IP with Let's Encrypt)
+#   SITE_ADDRESS=your-domain.com     (domain with Let's Encrypt)
+#
+# ═══════════════════════════════════════════════════════════════════
+
+{$SITE_ADDRESS} {
+  log {
+    output stdout
+    format json
+  }
+  reverse_proxy openclaw:3120
+}

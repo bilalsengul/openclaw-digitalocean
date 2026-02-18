@@ -16,17 +16,71 @@
 > **For vanilla OpenClaw**, use the [DO 1-Click](https://marketplace.digitalocean.com/apps/openclaw) — it's literally one button.
 >
 > **This scaffold is for custom projects** — when you have your own skills, agents, Python dependencies, and Dockerfile. The Pioneer Lobster went through every gotcha so you wouldn't have to.
+>
+> Inspired by DigitalOcean's [1-Click Packer scripts](https://github.com/digitalocean/droplet-1-clicks/tree/master/clawdbot-24-04) — we matched their security, Caddy TLS, and pairing UX, then added Docker isolation, Gradient AI integration, and non-interactive deployment.
+
+---
+
+## Prerequisites
+
+Before you begin, you'll need three things from DigitalOcean:
+
+### 1. A DigitalOcean Account + API Token
+
+The installer uses the **DigitalOcean API** to create and manage your Droplet (a cloud VM). You also need **`doctl`** (the DigitalOcean CLI) installed on your local machine — the script uses it to create Droplets, manage SSH keys, and deploy your code.
+
+**How to get your API token:**
+1. Sign up or log in at [cloud.digitalocean.com](https://cloud.digitalocean.com)
+2. Go to **API** → **Tokens** (left sidebar)
+3. Click **Generate New Token**
+4. Name it (e.g., "openclaw-deploy"), select **Full Access**, click **Generate**
+5. Copy the token immediately — it's only shown once
+
+This token goes in your `.env` as `DO_API_TOKEN`.
+
+### 2. An SSH Key (registered with DigitalOcean)
+
+The installer needs an SSH key to securely access your Droplet. Password authentication is disabled for security.
+
+**If you don't have an SSH key yet:**
+```bash
+ssh-keygen -t ed25519 -C "your-email@example.com"
+# Accept defaults, optionally set a passphrase
+```
+
+**Register it with DigitalOcean:**
+1. Go to **Settings** → **Security** → **SSH Keys**
+2. Click **Add SSH Key**
+3. Paste the contents of `~/.ssh/id_ed25519.pub`
+4. Note the key's **numeric ID** — the installer will ask for it (or set `DROPLET_SSH_KEY_IDS` in `.env`)
+
+### 3. A Gradient AI API Key (recommended)
+
+**[Gradient AI](https://docs.digitalocean.com/products/ai-ml/gradient-ai/)** is DigitalOcean's serverless AI inference platform. It gives you access to **29 models** — including free open-source models (Llama, DeepSeek, Qwen) and commercial ones (Claude, GPT-5) — all through a single API endpoint. No GPUs to manage, no model hosting — just an API key and you're running.
+
+If you set this key, OpenClaw will automatically be configured with all 29 models. If you skip it, you can configure any provider (Anthropic, OpenAI, etc.) via the UI after deployment.
+
+**How to get your Gradient AI key:**
+1. Go to [cloud.digitalocean.com](https://cloud.digitalocean.com)
+2. Navigate to **AI / ML** → **Gradient AI** (left sidebar)
+3. Click **Create API Key** (or **Manage Keys**)
+4. Copy the key — it starts with `sk-do-`
+
+This key goes in your `.env` as `GRADIENT_API_KEY`.
+
+> **Pricing note:** Open-source models (Llama, DeepSeek, Qwen, Mistral, GPT OSS) are included with your Droplet costs. Commercial models (Claude, GPT-5) are billed per-token through your DO account.
 
 ---
 
 ## Quick Start
 
-### 1. Fork & Clone
+### 1. Create Your Project
+
+Click **[Use this template](https://github.com/Rogue-Iteration/openclaw-digitalocean/generate)** on GitHub to create your own repository from this scaffold. Then:
 
 ```bash
-# Fork this repo on GitHub, then clone your fork
-git clone https://github.com/YOUR-ORG/openclaw-digitalocean.git my-project
-cd my-project/
+git clone https://github.com/YOUR-ORG/your-new-repo.git
+cd your-new-repo/
 ```
 
 ### 2. Add Your Code
@@ -36,13 +90,14 @@ cd my-project/
 - Add Python deps to `requirements.txt`
 - Customize `docker-entrypoint.sh` for your agents
 - Uncomment `COPY` lines in `Dockerfile`
-- Update `PROJECT_REPO` in `.env` to point to your fork
+- Update `PROJECT_REPO` in `.env` to point to your new repo
 
 ### 3. Configure
 
 ```bash
 cp example.env .env
-# Fill in your API keys and project info
+# Fill in: DO_API_TOKEN, PROJECT_NAME, PROJECT_REPO
+# Optionally: GRADIENT_API_KEY for 29 AI models
 ```
 
 ### 4. Deploy
@@ -58,7 +113,7 @@ bash install.sh
 bash install.sh --update
 ```
 
-That's it. The script creates a hardened Droplet, deploys your Docker containers, and applies all security measures automatically.
+The script creates a hardened Droplet, deploys your Docker containers, configures Gradient AI (if key provided), and walks you through pairing — all in one command.
 
 ---
 
@@ -70,10 +125,27 @@ That's it. The script creates a hardened Droplet, deploys your Docker containers
 | `deploy.sh` | On-server update script (pull + rebuild) |
 | `Dockerfile` | Multi-stage build: Node.js + Python + OpenClaw |
 | `docker-compose.yml` | Container orchestration with safe defaults |
-| `docker-entrypoint.sh` | First-run config + skill syncing |
+| `docker-entrypoint.sh` | First-run config, Gradient AI injection, skill sync |
 | `example.env` | Template for your environment variables |
-| `requirements.txt` | Python dependencies (initially empty) |
+| `Caddyfile` | HTTPS reverse proxy (automatic TLS, even for IPs) |
+| `gradient-provider.json` | 29 Gradient AI models (auto-configured when key is set) |
 | **`install-learnings.md`** | **📖 The real treasure — see below** |
+
+---
+
+## 🤖 Gradient AI Integration
+
+When `GRADIENT_API_KEY` is set in `.env`, the entrypoint automatically configures all 29 models:
+
+| Category | Count | Highlights |
+|----------|-------|------------|
+| **Open-source (free)** | 7 | Llama 3.3 70B, Qwen3 32B, DeepSeek R1, GPT OSS 120B |
+| **Anthropic** | 10 | Claude 3.5 Haiku through Claude Opus 4.6 |
+| **OpenAI** | 12 | GPT-4o through GPT-5.2 Pro, o1/o3 reasoning |
+
+The default model is `gradient/openai-gpt-oss-120b` — a free open-source model. Users can switch to any model via the UI after pairing.
+
+Without the key, no provider is pre-configured — users set up their own via the UI.
 
 ---
 
@@ -89,7 +161,7 @@ The Pioneer Lobster takes security personally. Every deploy gets:
 | **SSH Hardening** | Key-only auth, no passwords |
 | **Docker Log Rotation** | Prevents disk fill (10MB × 3 files) |
 | **File Permissions** | `.env` is `chmod 600` (owner-only) |
-| **Localhost Port Binding** | Gateway not exposed to internet |
+| **Caddy HTTPS Proxy** | Automatic TLS, even for bare IPs |
 | **Gateway Auth Token** | Prevents unauthorized API access |
 | **Exec Allowlist** | Agents can only run approved commands |
 
@@ -106,7 +178,8 @@ It's a comprehensive field guide covering every lesson learned from deploying Op
 - 🌊 Cloud-init timing and the SSH retry dance
 - 🔒 Why Docker ports bypass UFW (and the fix)
 - 🔑 Environment file hygiene
-- 📱 Telegram bot setup and pairing flow
+- 🌐 UI dashboard access and pairing flow
+- 🤖 Gradient AI provider configuration
 - 🐛 Common pitfalls and debugging
 - ⚖️ DO 1-Click vs. custom deployment comparison
 - ✅ Pre-launch security checklist

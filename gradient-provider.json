@@ -1,0 +1,603 @@
+{
+  "_comment": "Gradient AI model catalog. To refresh: curl -s -H 'Authorization: Bearer $GRADIENT_API_KEY' https://inference.do-ai.run/v1/models | python3 -m json.tool",
+  "_updated": "2026-02-18",
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "gradient": {
+        "baseUrl": "https://inference.do-ai.run/v1",
+        "apiKey": "PLACEHOLDER",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "alibaba-qwen3-32b",
+            "name": "Qwen3 32B (Alibaba)",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "deepseek-r1-distill-llama-70b",
+            "name": "DeepSeek R1 Distill 70B",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "llama3-8b-instruct",
+            "name": "Llama 3 8B Instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "llama3.3-70b-instruct",
+            "name": "Llama 3.3 70B Instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "mistral-nemo-instruct-2407",
+            "name": "Mistral Nemo Instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-oss-120b",
+            "name": "OpenAI GPT OSS 120B",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-oss-20b",
+            "name": "OpenAI GPT OSS 20B",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-3.5-haiku",
+            "name": "Claude 3.5 Haiku",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-3.7-sonnet",
+            "name": "Claude 3.7 Sonnet",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-sonnet-4",
+            "name": "Claude Sonnet 4",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 16384,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-4.1-opus",
+            "name": "Claude 4.1 Opus",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 32000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-haiku-4.5",
+            "name": "Claude Haiku 4.5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-4.5-sonnet",
+            "name": "Claude 4.5 Sonnet",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 64000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-opus-4",
+            "name": "Claude Opus 4",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 32000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-opus-4.5",
+            "name": "Claude Opus 4.5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 32000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-4.6-sonnet",
+            "name": "Claude 4.6 Sonnet",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 64000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "anthropic-claude-opus-4.6",
+            "name": "Claude Opus 4.6",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 64000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-4o",
+            "name": "GPT-4o",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 16384,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-4o-mini",
+            "name": "GPT-4o Mini",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 16384,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-4.1",
+            "name": "GPT-4.1",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 1048576,
+            "maxTokens": 32768,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-5",
+            "name": "GPT-5",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 256000,
+            "maxTokens": 32768,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-5-mini",
+            "name": "GPT-5 Mini",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 256000,
+            "maxTokens": 16384,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-5-nano",
+            "name": "GPT-5 Nano",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 128000,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-5.1-codex-max",
+            "name": "GPT-5.1 Codex Max",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 256000,
+            "maxTokens": 65536,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-5.2",
+            "name": "GPT-5.2",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 256000,
+            "maxTokens": 32768,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-gpt-5.2-pro",
+            "name": "GPT-5.2 Pro",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 256000,
+            "maxTokens": 65536,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-o1",
+            "name": "o1",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 100000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-o3",
+            "name": "o3",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 100000,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          },
+          {
+            "id": "openai-o3-mini",
+            "name": "o3 Mini",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "contextWindow": 200000,
+            "maxTokens": 65536,
+            "compat": {
+              "supportsStore": false,
+              "maxTokensField": "max_tokens"
+            },
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "gradient/openai-gpt-oss-120b"
+      }
+    }
+  }
+}

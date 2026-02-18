@@ -5,7 +5,7 @@
 #
 # A security-hardened installer for custom OpenClaw projects.
 # For vanilla OpenClaw, consider the DO 1-Click instead:
-#   https://marketplace.digitalocean.com/apps/moltbot
+#   https://marketplace.digitalocean.com/apps/openclaw
 #
 # Preconditions:
 #   1. You have filled out .env (see example.env)
@@ -247,8 +247,8 @@ echo "[6/7] Hardening Droplet..."
 
 # 6a. Firewall — deny all incoming, rate-limit SSH
 info "Configuring firewall..."
-remote_cmd "$DROPLET_IP" 'ufw default deny incoming && ufw default allow outgoing && ufw limit ssh/tcp comment "SSH (rate-limited)" && ufw delete allow 2375/tcp 2>/dev/null; ufw delete allow 2376/tcp 2>/dev/null; ufw --force enable'
-ok "Firewall active (SSH rate-limited, all other incoming blocked)"
+remote_cmd "$DROPLET_IP" 'ufw default deny incoming && ufw default allow outgoing && ufw limit ssh/tcp comment "SSH (rate-limited)" && ufw allow 80/tcp comment "HTTP" && ufw allow 443/tcp comment "HTTPS" && ufw delete allow 2375/tcp 2>/dev/null; ufw delete allow 2376/tcp 2>/dev/null; ufw --force enable'
+ok "Firewall active (SSH rate-limited, HTTP/HTTPS allowed)"
 
 # 6b. Fail2ban — brute-force protection
 info "Installing fail2ban..."
@@ -285,6 +285,37 @@ EOF
 systemctl restart docker'
 ok "Docker log rotation configured (10MB × 3 files)"
 
+# 6f. Custom MOTD — lobster greeting on SSH login
+info "Installing lobster MOTD..."
+remote_cmd "$DROPLET_IP" 'cat > /etc/update-motd.d/99-openclaw << '\''MOTD'\''
+#!/bin/bash
+QUOTES=(
+  "The ocean floor is just another frontier."
+  "Even the strongest shell started as a soft molt."
+  "Claws up, bugs down."
+  "I did not crawl out of the primordial ooze to write YAML by hand."
+  "Every great deploy starts with a single pinch."
+  "Trust the current, but verify the config."
+  "In deep water, nobody hears you segfault."
+  "Born to pinch. Forced to parse JSON."
+  "My shell is hardened. Is yours?"
+  "Keep your claws sharp and your tokens secret."
+)
+QUOTE=${QUOTES[$((RANDOM % ${#QUOTES[@]}))]}
+
+echo ""
+echo "  🦞 OpenClaw — Pioneer Lobster Edition"
+echo "  ──────────────────────────────────────"
+echo "  \"$QUOTE\""
+echo ""
+echo "  Dashboard: https://$(hostname -I | awk '\''{print $1}'\'')"
+echo "  Logs:      docker logs -f $(cat /etc/hostname 2>/dev/null || echo openclaw)"
+echo "  Status:    docker ps"
+echo ""
+MOTD
+chmod +x /etc/update-motd.d/99-openclaw'
+ok "Lobster MOTD installed"
+
 # ── 7. Deploy application ──────────────────────────────────────
 echo ""
 echo "[7/7] Deploying application..."
@@ -296,7 +327,8 @@ remote_cmd "$DROPLET_IP" "git clone $PROJECT_REPO $REMOTE_DIR 2>/dev/null || (cd
 # Upload .env (secure permissions)
 info "Uploading .env..."
 scp "${SSH_OPTS[@]}" "$ENV_FILE" "root@$DROPLET_IP:$REMOTE_DIR/.env"
-remote_cmd "$DROPLET_IP" "chmod 600 $REMOTE_DIR/.env"
+# Inject SITE_ADDRESS for Caddy — Let's Encrypt will issue a real cert for this IP
+remote_cmd "$DROPLET_IP" "echo 'SITE_ADDRESS=$DROPLET_IP' >> $REMOTE_DIR/.env && chmod 600 $REMOTE_DIR/.env"
 
 # Build and start
 info "Starting Docker containers..."
@@ -310,6 +342,9 @@ sleep 10
 
 if remote_cmd "$DROPLET_IP" "docker ps --filter name=$PROJECT_NAME --format '{{.Status}}'" | grep -q "Up"; then
   echo ""
+  # Retrieve gateway token for display
+  GW_TOKEN=$(remote_cmd "$DROPLET_IP" "docker exec $PROJECT_NAME cat /home/openclaw/.openclaw/openclaw.json 2>/dev/null | jq -r '.gateway.auth.token // empty'" 2>/dev/null || true)
+
   echo "╔════════════════════════════════════════════════════════════╗"
   echo "║  🦞 OpenClaw is running!                                 ║"
   echo "╚════════════════════════════════════════════════════════════╝"
@@ -320,15 +355,64 @@ if remote_cmd "$DROPLET_IP" "docker ps --filter name=$PROJECT_NAME --format '{{.
   echo "  Update:      bash install.sh --update"
   echo ""
   echo "  🔒 Security hardening applied:"
-  echo "     • UFW firewall (SSH rate-limited, all other incoming blocked)"
+  echo "     • UFW firewall (SSH rate-limited, HTTP/HTTPS allowed)"
   echo "     • Fail2ban (SSH brute-force protection)"
   echo "     • Unattended security upgrades"
   echo "     • SSH key-only authentication"
   echo "     • Docker log rotation"
   echo "     • .env file permissions (600)"
   echo ""
-  echo "  📱 NEXT STEP: Configure your messaging channel."
-  echo "     See install-learnings.md for the full walkthrough."
+  echo "  🌐 NEXT STEP: Pair your browser with the dashboard."
+  echo ""
+  echo "     URL:   https://$DROPLET_IP"
+  if [ -n "${GW_TOKEN:-}" ]; then
+    echo "     Token: $GW_TOKEN"
+  else
+    echo "     Token: (check container logs or ssh into the Droplet)"
+  fi
+  echo ""
+  echo "     1. Open the URL above in your browser"
+  echo "     2. Open the Overview panel in the sidebar"
+  echo "     3. Paste the gateway token and click Connect"
+  echo "     4. You'll see a 'pairing required' error — this is expected"
+  echo ""
+
+  # ── Automated pairing ──────────────────────────────────────────
+  if [ -n "${GW_TOKEN:-}" ]; then
+    read -rp "  Press Enter once you see the 'pairing required' error (or 'q' to skip): " PAIR_REPLY
+    if [ "${PAIR_REPLY:-}" != "q" ]; then
+      echo ""
+      echo "  🔍 Looking for pending pairing requests..."
+
+      # List pending device requests via the CLI
+      PENDING=$(remote_cmd "$DROPLET_IP" "docker exec $PROJECT_NAME openclaw devices list --token=$GW_TOKEN 2>/dev/null" || true)
+      # Extract request IDs (UUIDs from the pending section)
+      REQUEST_IDS=$(echo "$PENDING" | grep -oE '[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}' || true)
+      COUNT=$(echo "$REQUEST_IDS" | grep -c . 2>/dev/null || echo 0)
+
+      if [ "$COUNT" -eq 1 ]; then
+        REQ_ID=$(echo "$REQUEST_IDS" | head -1)
+        echo "  ✅ Found pairing request: $REQ_ID"
+        echo "     Approving..."
+        remote_cmd "$DROPLET_IP" "docker exec $PROJECT_NAME openclaw devices approve $REQ_ID --token=$GW_TOKEN 2>/dev/null" || true
+        echo ""
+        echo "  ╔════════════════════════════════════════════════════════════╗"
+        echo "  ║  🎉 Pairing approved! Refresh the dashboard to begin.    ║"
+        echo "  ╚════════════════════════════════════════════════════════════╝"
+      elif [ "$COUNT" -eq 0 ]; then
+        echo "  ⚠️  No pending requests found. Make sure you've opened the dashboard"
+        echo "     and connected with the gateway token first."
+        echo ""
+        echo "  To approve manually later:"
+        echo "    ssh root@$DROPLET_IP docker exec $PROJECT_NAME openclaw devices list --token=\$TOKEN"
+        echo "    ssh root@$DROPLET_IP docker exec $PROJECT_NAME openclaw devices approve \$REQUEST_ID --token=\$TOKEN"
+      else
+        echo "  ⚠️  Multiple pending requests found ($COUNT). Approve manually:"
+        echo "    ssh root@$DROPLET_IP docker exec $PROJECT_NAME openclaw devices list --token=\$TOKEN"
+        echo "    ssh root@$DROPLET_IP docker exec $PROJECT_NAME openclaw devices approve \$REQUEST_ID --token=\$TOKEN"
+      fi
+    fi
+  fi
   echo ""
 else
   echo "⚠️  Container may not be healthy yet. Check:"

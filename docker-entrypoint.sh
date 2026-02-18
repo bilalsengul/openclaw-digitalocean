@@ -3,16 +3,18 @@
 # 🦞 OpenClaw Docker Entrypoint
 # ═══════════════════════════════════════════════════════════════════
 # Runs on every container start. On first boot, configures:
-# - openclaw.json (gateway, models, tools, channels)
-# - Gateway authentication token
-# - Telegram channel (if TELEGRAM_BOT_TOKEN is set)
+# - openclaw.json (gateway, models, tools)
+# - Gateway authentication token (for UI dashboard access)
 # - Exec allowlist for skill scripts
+#
+# Configure messaging channels (Telegram, WhatsApp, etc.) via the
+# OpenClaw UI dashboard after deployment.
 #
 # On subsequent starts, only syncs skills and data from the image.
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
-STATE_DIR="$HOME/.openclaw"
+STATE_DIR="/home/openclaw/.openclaw"
 APP_DIR="/app"
 
 # ── 1. First-run: generate openclaw.json ─────────────────────────
@@ -24,12 +26,6 @@ if [ ! -f "$STATE_DIR/openclaw.json" ]; then
 {
   "gateway": {
     "mode": "local"
-  },
-  "plugins": {
-    "enabled": true,
-    "entries": {
-      "telegram": { "enabled": true }
-    }
   },
   "models": {
     "mode": "merge",
@@ -56,26 +52,12 @@ JSON
     "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
     && mv "$STATE_DIR/openclaw.json.tmp" "$STATE_DIR/openclaw.json"
   echo "  ✓ Gateway token generated"
-
-  # ── Configure Telegram (if token provided) ─────────────────────
-  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
-    # Build allowFrom list
-    if [ -n "${TELEGRAM_ALLOWED_IDS:-}" ]; then
-      ALLOW_FROM=$(echo "$TELEGRAM_ALLOWED_IDS" | tr ',' '\n' | jq -R . | jq -s .)
-    else
-      echo "  ⚠️  TELEGRAM_ALLOWED_IDS not set — bot is open to ALL users"
-      ALLOW_FROM='["*"]'
-    fi
-
-    jq --arg token "$TELEGRAM_BOT_TOKEN" --argjson allow "$ALLOW_FROM" \
-      '.channels.telegram.enabled = true
-       | .channels.telegram.botToken = $token
-       | .channels.telegram.dmPolicy = "pairing"
-       | .channels.telegram.allowFrom = $allow' \
-      "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
-      && mv "$STATE_DIR/openclaw.json.tmp" "$STATE_DIR/openclaw.json"
-    echo "  ✓ Telegram configured"
-  fi
+  echo ""
+  echo "  ╔══════════════════════════════════════════════════════════╗"
+  echo "  ║  🔑 Gateway Token (save this for UI dashboard access):  ║"
+  echo "  ╚══════════════════════════════════════════════════════════╝"
+  echo "  $GW_TOKEN"
+  echo ""
 
   # ── Let OpenClaw apply auto-detected fixes ─────────────────────
   openclaw doctor --fix 2>/dev/null || true
@@ -85,12 +67,27 @@ JSON
   # Add your skill script patterns here:
   for pattern in \
     "python3 /app/skills/*/scripts/*.py *" \
-    "python3 /root/.openclaw/skills/*/scripts/*.py *" \
+    "python3 /home/openclaw/.openclaw/skills/*/scripts/*.py *" \
     "cat" "ls" "head" "tail"; do
     openclaw approvals allowlist add --target local --agent '*' --pattern "$pattern" 2>/dev/null || true
   done
 
   echo "  ✓ openclaw.json created"
+
+  # ── Gradient AI provider (conditional) ─────────────────────────
+  # If GRADIENT_API_KEY is set, inject the full model catalog from
+  # /etc/openclaw/gradient-provider.json (29 models, all providers).
+  if [ -n "${GRADIENT_API_KEY:-}" ]; then
+    echo "  🔧 Configuring Gradient AI provider..."
+    jq --arg key "$GRADIENT_API_KEY" \
+       --slurpfile gp /etc/openclaw/gradient-provider.json \
+       '. * $gp[0] | .models.providers.gradient.apiKey = $key' \
+       "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
+       && mv "$STATE_DIR/openclaw.json.tmp" "$STATE_DIR/openclaw.json"
+    echo "  ✓ Gradient AI configured (29 models, default: openai-gpt-oss-120b)"
+  else
+    echo "  ℹ️  GRADIENT_API_KEY not set — configure a model provider via the UI"
+  fi
 fi
 
 # ── 2. Always: sync skills and data ─────────────────────────────

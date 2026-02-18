@@ -14,11 +14,14 @@ FROM node:22-slim AS base
 RUN apt-get update -qq && apt-get install -y --no-install-recommends git ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Create non-root user (matches DO 1-Click's dedicated openclaw user)
+RUN useradd -m -s /bin/bash openclaw
+
 # Install pnpm and OpenClaw globally
 RUN corepack enable && corepack prepare pnpm@latest --activate
-ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PNPM_HOME="/home/openclaw/.local/share/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN mkdir -p "$PNPM_HOME"
+RUN mkdir -p "$PNPM_HOME" && chown -R openclaw:openclaw "$PNPM_HOME"
 ARG OPENCLAW_VERSION=2026.2.15
 RUN pnpm add -g "openclaw@${OPENCLAW_VERSION}"
 
@@ -46,13 +49,18 @@ WORKDIR /app
 # COPY data/ ./data/
 
 # ── Entrypoint ───────────────────────────────────────────────────
+COPY gradient-provider.json /etc/openclaw/gradient-provider.json
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # OpenClaw state directory — mount a volume here for persistence
-VOLUME /root/.openclaw
+RUN mkdir -p /home/openclaw/.openclaw && chown openclaw:openclaw /home/openclaw/.openclaw
+VOLUME /home/openclaw/.openclaw
 
 EXPOSE 3120
+
+# Run as non-root user
+USER openclaw
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["openclaw", "gateway"]

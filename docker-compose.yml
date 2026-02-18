@@ -3,8 +3,10 @@
 # ═══════════════════════════════════════════════════════════════════
 # Usage:
 #   cp example.env .env       # fill in your values
-#   docker compose up -d      # start the bot
+#   docker compose up -d      # start
 #   docker compose logs -f    # view logs
+#
+# Dashboard: https://<droplet-ip>  (Caddy handles TLS automatically)
 # ═══════════════════════════════════════════════════════════════════
 
 services:
@@ -16,12 +18,31 @@ services:
     environment:
       - TZ=${TZ:-UTC}
     volumes:
-      - openclaw-state:/root/.openclaw
+      - openclaw-state:/home/openclaw/.openclaw
     ports:
-      # SECURITY: Bind to localhost only — no inbound ports exposed.
-      # If you need external access, use a reverse proxy (see install-learnings.md).
+      # Localhost only — Caddy reverse-proxies external access.
       - "127.0.0.1:3120:3120"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: ${PROJECT_NAME:-openclaw}-caddy
+    restart: always
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS:-:443}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - openclaw
 
 volumes:
   openclaw-state:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
     driver: local

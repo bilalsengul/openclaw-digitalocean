@@ -26,11 +26,12 @@ Whether you're deploying your first Droplet or your fiftieth, these notes will s
 4. [Docker Patterns](#4-docker-patterns)
 5. [OpenClaw Configuration](#5-openclaw-configuration)
 6. [Environment File Management](#6-environment-file-management)
-7. [Telegram Setup](#7-telegram-setup)
+7. [UI Dashboard & Pairing](#7-ui-dashboard--pairing)
 8. [Debugging & Troubleshooting](#8-debugging--troubleshooting)
 9. [Common Pitfalls](#9-common-pitfalls)
 10. [DO 1-Click vs. Custom Deployment](#10-do-1-click-vs-custom-deployment)
-11. [Security Checklist](#11-security-checklist)
+11. [Gradient AI Provider](#11-gradient-ai-provider)
+12. [Security Checklist](#12-security-checklist)
 
 ---
 
@@ -47,7 +48,7 @@ Whether you're deploying your first Droplet or your fiftieth, these notes will s
   └────────────┘                  │  │  │  Gateway     │ ││
                                   │  │  │  + Skills    │ ││
                                   │  │  └─────────────┘ ││
-       🦞 ◀── Telegram ──────────│  └──────────────────┘│
+       🦞 ◀── UI Dashboard ─────│  └──────────────────┘│
                                   │  UFW │ fail2ban      │
                                   └──────────────────────┘
 ```
@@ -56,8 +57,8 @@ Whether you're deploying your first Droplet or your fiftieth, these notes will s
 1. You fill out `.env` with your API keys and project config
 2. `install.sh` uses `doctl` to create a Droplet, harden it, and deploy your code
 3. Your OpenClaw project runs inside a Docker container
-4. The agent communicates via Telegram (or other channels)
-5. All state persists in a Docker volume at `/root/.openclaw`
+4. You access the OpenClaw UI dashboard to configure channels and manage agents
+5. All state persists in a Docker volume at `/home/openclaw/.openclaw`
 
 > [!IMPORTANT]
 > **This scaffold is for custom OpenClaw projects** — projects with their own Dockerfiles, skills, and dependencies. For vanilla OpenClaw, use the [DO 1-Click](https://marketplace.digitalocean.com/apps/openclaw) instead. It's literally one button.
@@ -130,6 +131,8 @@ This is the section the Pioneer Lobster is most proud of. Every item below is ap
 ufw default deny incoming    # Block everything
 ufw default allow outgoing   # Allow outbound (API calls, git, etc.)
 ufw limit ssh/tcp            # Rate-limit SSH (prevents brute force)
+ufw allow 80/tcp             # HTTP (Caddy redirect to HTTPS)
+ufw allow 443/tcp            # HTTPS (Caddy reverse proxy)
 ufw --force enable           # Activate
 ```
 
@@ -142,12 +145,10 @@ ufw --force enable           # Activate
 
 **What about port 3120 (OpenClaw gateway)?**
 
-Our Docker Compose binds port 3120 to `127.0.0.1` only. This means:
-- ✅ Accessible from inside the Droplet
-- ❌ NOT accessible from the internet
-- No UFW rule needed — it's simply not listening on the public interface
+Our Docker Compose binds port 3120 to `127.0.0.1` only by default. For UI dashboard access, the gateway needs to be reachable from your browser. Two options:
 
-If you need external HTTPS access (e.g., for a web dashboard), use a reverse proxy like Caddy. See the [DO 1-Click approach](#10-do-1-click-vs-custom-deployment) for how they do it.
+1. **Direct access** (simple): Bind to `0.0.0.0:3120` and open port 3120 in UFW
+2. **Reverse proxy** (production): Use Caddy for automatic HTTPS (see [section 7](#7-ui-dashboard--pairing))
 
 ### 3.2 Fail2ban
 
@@ -252,7 +253,7 @@ This keeps the image smaller by not carrying Node.js build tools into the final 
 
 ```yaml
 volumes:
-  - openclaw-state:/root/.openclaw
+  - openclaw-state:/home/openclaw/.openclaw
 ```
 
 The OpenClaw state directory (`~/.openclaw/`) contains:
@@ -266,16 +267,17 @@ The OpenClaw state directory (`~/.openclaw/`) contains:
 > [!WARNING]
 > `docker compose down -v` **deletes the volume and all state.** Only use this if you want a complete reset. Normally, use `docker compose down` (without `-v`).
 
-### 4.3 Localhost-Only Port Binding
+### 4.3 Port Binding
 
 ```yaml
 ports:
-  - "127.0.0.1:3120:3120"
+  - "127.0.0.1:3120:3120"  # OpenClaw gateway (localhost only)
 ```
 
-This is critical. Without the `127.0.0.1:` prefix, Docker publishes the port on all interfaces — including the public IP. UFW **does not** block Docker-published ports (Docker manipulates iptables directly).
+The gateway binds to localhost only. Caddy (in the same Compose stack) handles external access over HTTPS on ports 80/443.
 
-The Pioneer Lobster discovered this when port 3120 was accessible from the entire internet despite UFW showing "deny all incoming." Docker and UFW operate on different iptables chains. Always bind to localhost.
+> [!WARNING]
+> **Docker ports bypass UFW.** Docker manipulates iptables directly, so `ufw deny` has no effect on Docker-published ports. This is why the gateway is bound to localhost — Caddy is the only externally accessible service, and it forwards to the gateway internally.
 
 ### 4.4 Container Naming
 
@@ -299,11 +301,11 @@ The container restarts automatically if it crashes, or when the Droplet reboots.
 
 ### 5.1 openclaw.json
 
-Generated once, on first container boot. Lives in the volume at `/root/.openclaw/openclaw.json`. Contains:
+Generated once, on first container boot. Lives in the volume at `/home/openclaw/.openclaw/openclaw.json`. Contains:
 - Gateway config (mode, auth)
 - Model providers (API keys, endpoints)
 - Agent list (names, IDs, workspaces, model bindings)
-- Channel config (Telegram, WhatsApp, etc.)
+- Channel config (configured via UI dashboard)
 - Tool security settings (exec allowlist mode)
 
 **Never bake this into the Docker image.** It contains secrets and should be generated at runtime from environment variables.
@@ -331,12 +333,12 @@ Each agent needs an entry in `agents.list`:
   "id": "my-agent",
   "name": "Agent Name",
   "default": true,
-  "workspace": "/root/.openclaw/agents/my-agent/agent",
+  "workspace": "/home/openclaw/.openclaw/agents/my-agent/agent",
   "model": { "primary": "provider/model-id" }
 }
 ```
 
-For multi-agent Telegram routing, use per-agent bot accounts and bindings. See the OpenClaw docs for multi-account Telegram configuration.
+For multi-agent routing with per-agent channels, configure the bindings via the OpenClaw UI dashboard or edit `openclaw.json` directly.
 
 ### 5.4 Skills
 
@@ -386,43 +388,74 @@ Git stores file history permanently. Even if you `git rm` a `.env` file later, t
 
 ---
 
-## 7. Telegram Setup
+## 7. UI Dashboard & Pairing
 
-### Creating Bots
+### Accessing the Dashboard
 
-1. Open Telegram and find **@BotFather**
-2. Send `/newbot`
-3. Choose a display name and username (must end in `bot`)
-4. Copy the **HTTP API token** → paste into `.env` as `TELEGRAM_BOT_TOKEN`
+After deployment, the OpenClaw UI is available at:
+
+```
+https://<droplet-ip>
+```
+
+Caddy serves as a reverse proxy, providing automatic HTTPS with a real **Let's Encrypt certificate** — even for bare IP addresses. The `install.sh` script automatically injects the Droplet's IP as the `SITE_ADDRESS` environment variable, which Caddy uses to request the certificate.
+
+> [!TIP]
+> To use a custom domain instead, point your domain's DNS to the Droplet IP, then set `SITE_ADDRESS=your-domain.com` in `.env` and restart: `docker compose restart caddy`.
+
+The dashboard lets you:
+- Configure messaging channels (Telegram, WhatsApp, Slack, Discord)
+- Manage agents and models
+- View conversations and logs
+- Approve pairing requests
+
+### Gateway Token
+
+On first boot, the entrypoint generates a random gateway token and prints it to the container logs. You'll need this to authenticate with the dashboard.
+
+```bash
+# Find the token in container logs:
+docker logs <container-name> 2>&1 | grep -A1 "Gateway Token"
+
+# Or extract it from the config:
+docker exec <container-name> jq -r '.gateway.auth.token' /home/openclaw/.openclaw/openclaw.json
+```
 
 ### Pairing
 
-After deployment:
-1. Send any message to your bot on Telegram
-2. It replies with a **pairing code**
-3. Approve it:
+Since OpenClaw 1.26, the UI requires **device pairing** for access:
+
+1. Open the dashboard URL in your browser
+2. Paste your gateway token when prompted
+3. A pairing request dialog appears — this is expected
+4. Approve it via the CLI:
 
 ```bash
 # On the Droplet:
-docker exec <container> openclaw pairing approve telegram <CODE>
+docker exec <container> openclaw pairing approve web <CODE>
 
 # Or from your local machine:
-ssh root@<droplet-ip> docker exec <container> openclaw pairing approve telegram <CODE>
+ssh root@<droplet-ip> docker exec <container> openclaw pairing approve web <CODE>
 ```
 
-### allowFrom — Who Can Talk to Your Bot?
+After approval, refresh the dashboard — you're in.
 
-Set `TELEGRAM_ALLOWED_IDS` in `.env` to a comma-separated list of numeric Telegram user IDs. This restricts access to only those users.
+### Custom Domain (Optional)
 
-**Finding your Telegram user ID:**
-Deploy without `TELEGRAM_ALLOWED_IDS` first. When you message the bot, it will reply with your numeric user ID. Add it, then re-deploy.
+To switch from a self-signed cert to a proper Let's Encrypt certificate:
 
-### Group Chats
+1. Point your domain's DNS A record to the Droplet IP
+2. Edit the `Caddyfile`:
 
-For multi-agent setups with group chats:
-- Enable group mode in BotFather: `/mybots` → select bot → **Bot Settings** → **Allow Groups** → **Enable**
-- Add `requireMention: true` in the Telegram config so bots only respond when @mentioned
-- Unmentioned messages go to the default agent
+```
+your-domain.com {
+  reverse_proxy openclaw:3120
+}
+```
+
+3. Restart: `docker compose restart caddy`
+
+Caddy automatically provisions and renews Let's Encrypt certificates. This is the same approach the DO 1-Click uses.
 
 ---
 
@@ -507,7 +540,7 @@ while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 2; done
 
 **Problem:** Docker manipulates iptables directly. Even with `ufw deny`, Docker-published ports are accessible from the internet.
 
-**Solution:** Always bind to `127.0.0.1:PORT:PORT`, never `PORT:PORT`.
+**Solution:** The gateway auth token protects port 3120. For additional security, add a Caddy reverse proxy in front and bind the gateway to localhost only.
 
 ### 🪤 Volume Ownership After Rebuild
 
@@ -576,7 +609,7 @@ The Pioneer Lobster has explored both routes. Here's when to use each:
 | **Best for** | Vanilla OpenClaw, no custom code | Custom projects with skills, agents, dependencies |
 | **Setup time** | 2 minutes (one button) | 10-15 minutes |
 | **Architecture** | Native npm + systemd | Docker Compose |
-| **TLS/HTTPS** | ✅ Caddy auto-cert (even for IPs!) | ❌ Manual (add Caddy yourself) |
+| **TLS/HTTPS** | ✅ Caddy auto-cert (even for IPs!) | ✅ Caddy auto-cert (same approach) |
 | **Security** | ✅ Full hardening | ✅ Full hardening (we match their features) |
 | **Custom Python skills** | ⚠️ Manual setup | ✅ Built-in (Dockerfile) |
 | **Custom Dockerfile** | ❌ Not applicable | ✅ Full control |
@@ -584,17 +617,52 @@ The Pioneer Lobster has explored both routes. Here's when to use each:
 | **AI agent friendly** | ⚠️ Interactive wizard | ✅ Non-interactive, env-var driven |
 | **Auditable** | ⚠️ Packer scripts only | ✅ Full source code |
 
-### What the DO 1-Click Does That We Don't (Yet)
+### What the DO 1-Click Does That We Don't
 
-1. **Caddy TLS reverse proxy** — automatic HTTPS, even for raw IP addresses via LetsEncrypt. This is genuinely impressive. If you need external HTTPS, consider adding Caddy as a second service in your docker-compose.
+1. **Interactive setup wizard** — DO's first-login wizard prompts for API keys and walks through pairing. Our approach uses `.env` files and automated pairing via `install.sh`, which is better for AI agents and scripted deploys.
 
-2. **Dedicated non-root user** — DO creates an `openclaw` system user. Our Docker approach runs as root inside the container, which is containerized (less risky), but a non-root user inside Docker would be even better.
+2. **Helper scripts** — DO ships convenience scripts for restart, status, update, and domain setup. Our scaffold uses `docker compose` commands directly, which is standard Docker workflow.
 
-3. **Interactive setup wizard** — DO's first-login wizard prompts for API keys. Our approach uses `.env` files instead, which is better for AI agents but less discoverable for beginners.
+> [!NOTE]
+> This scaffold was [inspired by the DO 1-Click Packer scripts](https://github.com/digitalocean/droplet-1-clicks/tree/master/clawdbot-24-04). We matched their security model (UFW, fail2ban, Caddy TLS, non-root user, gateway auth), then added Docker isolation, Gradient AI integration, and non-interactive deployment.
 
 ---
 
-## 11. Security Checklist
+## 11. Gradient AI Provider
+
+### Automatic Configuration
+
+If `GRADIENT_API_KEY` is set in `.env`, the entrypoint automatically configures Gradient AI as a model provider with **29 models** from DigitalOcean's GPU cloud:
+
+| Category | Models | Examples |
+|----------|--------|----------|
+| **Open-source (free)** | 7 | Llama 3.3 70B, Qwen3 32B, DeepSeek R1, GPT OSS 120B |
+| **Anthropic** | 10 | Claude 3.5 Haiku → Claude Opus 4.6 |
+| **OpenAI** | 12 | GPT-4o → GPT-5.2 Pro, o1/o3 reasoning |
+
+The default model is `gradient/openai-gpt-oss-120b` — a free open-source model running on DO's GPUs. Users can switch to any other model via the UI dashboard.
+
+### How It Works
+
+1. `gradient-provider.json` ships inside the Docker image at `/etc/openclaw/gradient-provider.json`
+2. On first boot, the entrypoint checks for `GRADIENT_API_KEY`
+3. If set, it merges the provider config into `openclaw.json` via `jq`
+4. All 29 models appear in the UI model picker under the `gradient/` prefix
+
+### Without Gradient AI
+
+If `GRADIENT_API_KEY` is not set, no provider is pre-configured. Users can set up any supported provider (Anthropic, OpenAI, OpenRouter, etc.) via the UI dashboard after pairing.
+
+### Changing the Default Model
+
+In the UI dashboard, open agent settings and change the primary model. Popular choices:
+- `gradient/anthropic-claude-4.5-sonnet` — strongest general-purpose
+- `gradient/openai-gpt-5` — newest OpenAI
+- `gradient/deepseek-r1-distill-llama-70b` — free reasoning model
+
+---
+
+## 12. Security Checklist
 
 Before going live, the Pioneer Lobster recommends verifying:
 
@@ -608,7 +676,7 @@ Before going live, the Pioneer Lobster recommends verifying:
 ✅ Docker ports bound to 127.0.0.1 only
 ✅ Gateway auth token generated
 ✅ Exec allowlist configured (no unrestricted exec)
-✅ TELEGRAM_ALLOWED_IDS set (not open to all)
+✅ UI dashboard accessible and paired
 ✅ Docker daemon ports (2375/2376) blocked
 ✅ .env NOT in git history
 ✅ .env NOT baked into Docker image
