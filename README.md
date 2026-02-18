@@ -128,14 +128,15 @@ This setup replicates the robust architecture of the official DigitalOcean 1-Cli
 ## 🚀 Access
 After deployment, your dashboard is protected by **Basic Authentication** (security) and HTTPS.
 
-**`https://<YOUR_DROPLET_IP>/`**
+**`https://<YOUR_DROPLET_IP>/#token=<GATEWAY_TOKEN>`**
 
-1.  **Enter Credentials**: Browser will prompt for User/Pass (output at end of install).
-2.  **Pairing**: Enter your Gateway Token.
+1.  **Click the Magic Link**: The installer provides a full URL with your token.
+2.  **Enter Basic Auth**: Browser prompts for User/Pass (also provided by installer).
+3.  **Auto-Login**: You are instantly connected to the dashboard.
 
-(No SSL warnings. You get a valid secure connection.)
+(No SSL warnings. No manual token pasting.)
 
-The installer will display your **Username**, **Password**, and **Gateway Token** at the end of the process. **Save these!**
+The installer will display your **Magic Link**, **Username**, and **Password** at the end of the process. **Save these!**
 
 ## What's in the Box
 

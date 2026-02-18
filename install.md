@@ -152,16 +152,28 @@
 1.  **Wait for Health**:
     *   Wait 20-30 seconds for the container to boot.
 
-2.  **Retrieve Gateway Token**:
-    *   *Action*: `ssh root@<DROPLET_IP> "docker exec <PROJECT_NAME> cat /home/openclaw/.openclaw/openclaw.json" | jq -r .gateway.auth.token`.
+2.  **Configure Gateway Token**:
+    *   *Action*:
+        ```bash
+        # Generate a strong token
+        export TOKEN=$(openssl rand -hex 16)
+        
+        # Set it in the container
+        ssh root@<DROPLET_IP> "docker exec <PROJECT_NAME> openclaw config set gateway.auth.token $TOKEN"
+        
+        # Restart to apply
+        ssh root@<DROPLET_IP> "docker restart <PROJECT_NAME>"
+        ```
 
 3.  **Visual Check**:
     *   *Action*: Navigate the browser to `https://<DROPLET_IP>/`.
-    *   *Pass Criteria*: Page loads, Green Lock (Valid Cert), No "Privacy Error".
+    *   *Pass Criteria*: Page loads, Green Lock (Valid Cert), Basic Auth Prompt.
 
 4.  **Final Report**:
-    *   Output the **Dashboard URL**, **Gateway Token**, **Username** (`admin`), and **Password** (`DASHBOARD_PASS`) to the user.
-    *   **IMPORTANT**: Emphasize that these credentials are required to access the site.
+    *   **Magic Login Link**: `https://<DROPLET_IP>/#token=$TOKEN`
+    *   **Basic Auth**: Username: `admin`, Password: `DASHBOARD_PASS`
+    *   **Gateway Token**: `$TOKEN`
+    *   *Instructions*: "Click the Magic Link, enter Basic Auth credentials, and you will be automatically logged in."
 
 ---
 **Troubleshooting Notes**:
