@@ -1,6 +1,4 @@
 {
-  "_comment": "Gradient AI model catalog. To refresh: curl -s -H 'Authorization: Bearer $GRADIENT_API_KEY' https://inference.do-ai.run/v1/models | python3 -m json.tool",
-  "_updated": "2026-02-18",
   "models": {
     "mode": "merge",
     "providers": {
