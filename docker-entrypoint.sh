@@ -25,8 +25,7 @@ if [ ! -f "$STATE_DIR/openclaw.json" ]; then
   cat > "$STATE_DIR/openclaw.json" <<'JSON'
 {
   "gateway": {
-    "mode": "local",
-    "bind": "0.0.0.0"
+    "mode": "local"
   },
   "models": {
     "mode": "merge",

@@ -17,5 +17,5 @@
     output stdout
     format json
   }
-  reverse_proxy openclaw:3120
+  reverse_proxy localhost:3120
 }

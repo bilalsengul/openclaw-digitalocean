@@ -20,24 +20,26 @@ services:
     volumes:
       - openclaw-state:/home/openclaw/.openclaw
     ports:
-      # Localhost only — Caddy reverse-proxies external access.
+      # Gateway dashboard (localhost only — Caddy reverse-proxies external access)
       - "127.0.0.1:3120:3120"
+      # Caddy shares this container's network namespace, so its
+      # ports (80, 443) are exposed here.
+      - "80:80"
+      - "443:443"
 
   caddy:
     image: caddy:2-alpine
     container_name: ${PROJECT_NAME:-openclaw}-caddy
     restart: always
+    # Share OpenClaw's network namespace so Caddy can reach
+    # the gateway on localhost:3120 (it binds to loopback only).
+    network_mode: "service:openclaw"
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS:-:443}
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
-    depends_on:
-      - openclaw
 
 volumes:
   openclaw-state:
