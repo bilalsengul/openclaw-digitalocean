@@ -117,19 +117,33 @@ The script creates a hardened Droplet, deploys your Docker containers, configure
 
 ---
 
+## 🏗️ Architecture & Security
+This setup replicates the robust architecture of the official DigitalOcean 1-Click Installer:
+
+1.  **Host-based Gateway (Caddy)**: The web server runs natively on the Droplet (Systemd). This allows it to automatically provision **valid Let's Encrypt certificates for the raw IP address**, ensuring secure access without a domain name.
+2.  **Isolated Application (Docker)**: The OpenClaw application runs in an isolated container standard, non-root user.
+3.  **Secure Bridge**: Caddy handles the public edge (port 443) and proxies traffic safely to the backend container (port 18789).
+
+## 🚀 Access
+After deployment, your dashboard is available immediately at your Droplet's IP:
+
+**`https://<YOUR_DROPLET_IP>/`**
+
+(No warnings. You get a valid, green-lock HTTPS connection.)
+
+The installer will display your **Gateway Token** at the end of the process.
+
 ## What's in the Box
 
 | File | Purpose |
 |------|---------|
-| `install.sh` | Creates Droplet, hardens it, deploys your code |
-| `deploy.sh` | On-server update script (pull + rebuild) |
+| `install.sh` | Creates Droplet, installs Host Caddy, checks security, deploys app |
 | `Dockerfile` | Multi-stage build: Node.js + Python + OpenClaw |
-| `docker-compose.yml` | Container orchestration with safe defaults |
+| `docker-compose.yml` | Container orchestration for the application logic |
 | `docker-entrypoint.sh` | First-run config, Gradient AI injection, skill sync |
 | `example.env` | Template for your environment variables |
-| `Caddyfile` | HTTPS reverse proxy (automatic TLS, even for IPs) |
-| `gradient-provider.json` | 29 Gradient AI models (auto-configured when key is set) |
-| **`install-learnings.md`** | **📖 The real treasure — see below** |
+| `gradient-provider.json` | 29 Gradient AI models configuration |
+| **`install-learnings.md`** | **📖 The architect's notebook — see below** |
 
 ---
 

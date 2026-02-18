@@ -316,9 +316,28 @@ MOTD
 chmod +x /etc/update-motd.d/99-openclaw'
 ok "Lobster MOTD installed"
 
-# ── 7. Deploy application ──────────────────────────────────────
+# ── 7. Configure Caddy (Host-based for valid IP SSL) ────────────────
+info "Installing & configuring Caddy (host-based)..."
+remote_cmd "$DROPLET_IP" "apt-get update && apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && apt-get update && apt-get install -y caddy"
+
+# Configure Caddyfile with explicit ACME issuer for IP
+remote_cmd "$DROPLET_IP" "cat > /etc/caddy/Caddyfile <<EOF
+$DROPLET_IP {
+    tls {
+        issuer acme {
+            dir https://acme-v02.api.letsencrypt.org/directory
+            profile shortlived
+        }
+    }
+    reverse_proxy localhost:18789
+}
+EOF
+systemctl restart caddy"
+ok "Caddy installed and configured on host"
+
+# ── 8. Deploy application ──────────────────────────────────────
 echo ""
-echo "[7/7] Deploying application..."
+echo "[8/8] Deploying application..."
 
 # Clone repo
 info "Cloning repository..."
@@ -327,12 +346,11 @@ remote_cmd "$DROPLET_IP" "git clone $PROJECT_REPO $REMOTE_DIR 2>/dev/null || (cd
 # Upload .env (secure permissions)
 info "Uploading .env..."
 scp "${SSH_OPTS[@]}" "$ENV_FILE" "root@$DROPLET_IP:$REMOTE_DIR/.env"
-# Inject SITE_ADDRESS for Caddy — Let's Encrypt will issue a real cert for this IP
-remote_cmd "$DROPLET_IP" "echo 'SITE_ADDRESS=$DROPLET_IP' >> $REMOTE_DIR/.env && chmod 600 $REMOTE_DIR/.env"
+remote_cmd "$DROPLET_IP" "chmod 600 $REMOTE_DIR/.env"
 
-# Build and start
+# Build and start ONLY OpenClaw (Caddy is managed on host now)
 info "Starting Docker containers..."
-remote_cmd "$DROPLET_IP" "cd $REMOTE_DIR && docker compose up -d --build"
+remote_cmd "$DROPLET_IP" "cd $REMOTE_DIR && docker compose up -d --build openclaw"
 ok "Containers started"
 
 # ── Verify ──────────────────────────────────────────────────────

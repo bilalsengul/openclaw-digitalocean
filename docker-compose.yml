@@ -25,26 +25,6 @@ services:
       # If you want it private, remove the published port mapping.
       - "127.0.0.1:18789:18789"
 
-  caddy:
-    image: caddy:2-alpine
-    container_name: ${PROJECT_NAME:-openclaw}-caddy
-    restart: always
-    environment:
-      - SITE_ADDRESS=${SITE_ADDRESS:-:443}
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - openclaw
-
 volumes:
   openclaw-state:
-    driver: local
-  caddy-data:
-    driver: local
-  caddy-config:
     driver: local

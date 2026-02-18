@@ -708,3 +708,24 @@ docker ps                       # Container running
          🌊                                                🌊
          🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊🌊
 ```
+
+## 13. The Great "Host Caddy" Pivot
+
+### The Problem: Valid HTTPS on a Raw IP
+
+Most ACME providers (like Let's Encrypt) require a domain name. Getting a valid certificate for a bare IP address (e.g., `159.89.23.104`) is rare and notoriously difficult.
+
+We initially tried running Caddy in Docker. It failed continuously with "Internal Error" during the handshake, even when it claimed to obtain a certificate. The complexity of Docker networking, volume permissions, and ACME challenges on a raw IP was the blocker.
+
+### The Solution: Do What the 1-Click Does
+
+The official DigitalOcean 1-Click installer uses a clever trick: **Run Caddy on the Host OS.**
+
+By moving Caddy out of Docker and into `systemd` (native Ubuntu service):
+1.  **Networking is simple**: No bridges or NAT. Caddy binds directly to host port 80/443.
+2.  **Permissions are standard**: Running as the `caddy` user with root-owned configuration is a solved problem on Linux.
+3.  **Certificates just work**: The standard Caddy build (installed via `apt`) handles IP-based ACME challenges flawlessly when configured with the right issuer.
+
+**Result:** Valid green-lock HTTPS on a raw IP address, zero configuration for the user.
+
+---
