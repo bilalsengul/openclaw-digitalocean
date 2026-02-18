@@ -158,12 +158,14 @@
         # Generate a strong token
         export TOKEN=$(openssl rand -hex 16)
         
-        # Set it in the container
+        # Set it in the running container (applies live, no restart needed)
         ssh root@<DROPLET_IP> "docker exec <PROJECT_NAME> openclaw config set gateway.auth.token $TOKEN"
-        
-        # Restart to apply
-        ssh root@<DROPLET_IP> "docker restart <PROJECT_NAME>"
         ```
+    *   *Verification*: Read back the token to confirm it was persisted:
+        ```bash
+        ssh root@<DROPLET_IP> "docker exec <PROJECT_NAME> openclaw config get gateway.auth.token"
+        ```
+    *   *If the readback does not match*, retry the `config set` command.
 
 3.  **Visual Check**:
     *   *Action*: Navigate the browser to `https://<DROPLET_IP>/`.
