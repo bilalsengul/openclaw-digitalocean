@@ -143,6 +143,7 @@ The installer will display your **Magic Link**, **Username**, and **Password** a
 | File | Purpose |
 |------|---------|
 | `install.md` | **AI Deployment Runbook** (replaces legacy script) |
+| `update_deployment.md` | **AI Update Runbook** (replaces deploy script) |
 | `Dockerfile` | Multi-stage build: Node.js + Python + OpenClaw |
 | `docker-compose.yml` | Container orchestration for the application logic |
 | `docker-entrypoint.sh` | First-run config, Gradient AI injection, skill sync |

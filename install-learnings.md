@@ -180,7 +180,7 @@ dpkg-reconfigure -f noninteractive unattended-upgrades
 This enables automatic installation of security patches for Ubuntu packages. Your Droplet will stay patched without manual intervention.
 
 > [!NOTE]
-> Unattended-upgrades will **not** update Docker images or your application code. Those require manual updates via `deploy.sh`.
+> Unattended-upgrades will **not** update Docker images or your application code. Those require manual updates via `update_deployment.md`.
 
 ### 3.4 SSH Hardening
 
@@ -615,7 +615,7 @@ The Pioneer Lobster has explored both routes. Here's when to use each:
 | **Security** | ✅ Full hardening | ✅ Full hardening (we match their features) |
 | **Custom Python skills** | ⚠️ Manual setup | ✅ Built-in (Dockerfile) |
 | **Custom Dockerfile** | ❌ Not applicable | ✅ Full control |
-| **Update mechanism** | `/opt/update-openclaw.sh` | `deploy.sh` (or `install.md`) |
+| **Update mechanism** | `/opt/update-openclaw.sh` | `update_deployment.md` |
 | **AI agent friendly** | ⚠️ Interactive wizard | ✅ Non-interactive, AI Runbook |
 | **Auditable** | ⚠️ Packer scripts only | ✅ Full source code |
 
