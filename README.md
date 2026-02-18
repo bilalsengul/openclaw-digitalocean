@@ -21,6 +21,17 @@
 
 ---
 
+## 🤖 Built for AI Agents (Claude Code, Antigravity, etc.)
+
+**"Finally, a deployment guide that speaks binary."** — *The Pioneer Lobster* 🦞
+
+This repository is designed to be consumed by **AI Coding Agents**. It replaces brittle shell scripts with **AI Runbooks** (`install.md`, `update_deployment.md`) — declarative markdown files that your AI agent can read, understand, and execute step-by-step.
+
+**To deploy:** Simply paste `install.md` into your agent's context and say:
+> *"Follow this runbook to deploy to DigitalOcean."*
+
+---
+
 ## Prerequisites
 
 Before you begin, you'll need three things from DigitalOcean:
