@@ -26,7 +26,15 @@ if [ ! -f "$STATE_DIR/openclaw.json" ]; then
 {
   "gateway": {
     "mode": "local",
-    "bind": "lan"
+    "bind": "lan",
+    "controlUi": {
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
+    },
+    "trustedProxies": [
+      "172.16.0.0/12",
+      "127.0.0.1"
+    ]
   },
   "models": {
     "mode": "merge",
