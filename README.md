@@ -125,7 +125,7 @@ Paste this prompt into your AI coding assistant:
 
 > "Read install.md and deploy this project to DigitalOcean for me. My secrets are in .env."
 
-*(Legacy script available at `scripts/legacy_install.sh` if needed)*
+
 
 ---
 
