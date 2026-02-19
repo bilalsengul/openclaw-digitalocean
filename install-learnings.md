@@ -638,11 +638,11 @@ If `GRADIENT_API_KEY` is set in `.env`, the entrypoint automatically configures 
 
 | Category | Models | Examples |
 |----------|--------|----------|
-| **Open-source (free)** | 7 | Llama 3.3 70B, Qwen3 32B, DeepSeek R1, GPT OSS 120B |
+| **Open-source** | 7 | Llama 3.3 70B, Qwen3 32B, DeepSeek R1, GPT OSS 120B |
 | **Anthropic** | 10 | Claude 3.5 Haiku → Claude Opus 4.6 |
 | **OpenAI** | 12 | GPT-4o → GPT-5.2 Pro, o1/o3 reasoning |
 
-The default model is `gradient/openai-gpt-oss-120b` — a free open-source model running on DO's GPUs. Users can switch to any other model via the UI dashboard.
+The default model is `gradient/openai-gpt-oss-120b` — an open-source model running on DO's GPUs. Users can switch to any other model via the UI dashboard.
 
 ### How It Works
 
@@ -660,7 +660,7 @@ If `GRADIENT_API_KEY` is not set, no provider is pre-configured. Users can set u
 In the UI dashboard, open agent settings and change the primary model. Popular choices:
 - `gradient/anthropic-claude-4.5-sonnet` — strongest general-purpose
 - `gradient/openai-gpt-5` — newest OpenAI
-- `gradient/deepseek-r1-distill-llama-70b` — free reasoning model
+- `gradient/deepseek-r1-distill-llama-70b` — open-source reasoning model
 
 ---
 

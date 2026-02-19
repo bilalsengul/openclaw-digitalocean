@@ -67,7 +67,7 @@ ssh-keygen -t ed25519 -C "your-email@example.com"
 
 ### 3. A Gradient AI API Key (recommended)
 
-**[Gradient AI](https://docs.digitalocean.com/products/ai-ml/gradient-ai/)** is DigitalOcean's serverless AI inference platform. It gives you access to **29 models** — including free open-source models (Llama, DeepSeek, Qwen) and commercial ones (Claude, GPT-5) — all through a single API endpoint. No GPUs to manage, no model hosting — just an API key and you're running.
+**[Gradient AI](https://docs.digitalocean.com/products/ai-ml/gradient-ai/)** is DigitalOcean's serverless AI inference platform. It gives you access to **29 models** — including open-source models (Llama, DeepSeek, Qwen) and commercial ones (Claude, GPT-5) — all through a single API endpoint. No GPUs to manage, no model hosting — just an API key and you're running.
 
 If you set this key, OpenClaw will automatically be configured with all 29 models. If you skip it, you can configure any provider (Anthropic, OpenAI, etc.) via the UI after deployment.
 
@@ -79,7 +79,7 @@ If you set this key, OpenClaw will automatically be configured with all 29 model
 
 This key goes in your `.env` as `GRADIENT_API_KEY`.
 
-> **Pricing note:** Open-source models (Llama, DeepSeek, Qwen, Mistral, GPT OSS) are included with your Droplet costs. Commercial models (Claude, GPT-5) are billed per-token through your DO account.
+> **Pricing note:** All models (open-source and commercial) are billed per-token through your DigitalOcean account. See [Gradient AI Pricing](https://docs.digitalocean.com/products/ai-ml/gradient-ai/details/pricing/) for details.
 
 ---
 
@@ -170,11 +170,11 @@ When `GRADIENT_API_KEY` is set in `.env`, the entrypoint automatically configure
 
 | Category | Count | Highlights |
 |----------|-------|------------|
-| **Open-source (free)** | 7 | Llama 3.3 70B, Qwen3 32B, DeepSeek R1, GPT OSS 120B |
+| **Open-source** | 7 | Llama 3.3 70B, Qwen3 32B, DeepSeek R1, GPT OSS 120B |
 | **Anthropic** | 10 | Claude 3.5 Haiku through Claude Opus 4.6 |
 | **OpenAI** | 12 | GPT-4o through GPT-5.2 Pro, o1/o3 reasoning |
 
-The default model is `gradient/openai-gpt-oss-120b` — a free open-source model. Users can switch to any model via the UI after pairing.
+The default model is `gradient/openai-gpt-oss-120b` — an open-source model. Users can switch to any model via the UI after pairing.
 
 Without the key, no provider is pre-configured — users set up their own via the UI.
 
