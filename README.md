@@ -137,17 +137,15 @@ This setup replicates the robust architecture of the official DigitalOcean 1-Cli
 3.  **Secure Bridge**: Caddy handles the public edge (port 443) and proxies traffic safely to the backend container (port 18789).
 
 ## 🚀 Access
-After deployment, your dashboard is protected by **Basic Authentication** (security) and HTTPS.
+After deployment, your dashboard is protected by **Basic Authentication** and HTTPS.
 
-**`https://<YOUR_DROPLET_IP>/#token=<GATEWAY_TOKEN>`**
+**`https://<YOUR_DROPLET_IP>`**
 
-1.  **Click the Magic Link**: The installer provides a full URL with your token.
-2.  **Enter Basic Auth**: Browser prompts for User/Pass (also provided by installer).
-3.  **Auto-Login**: You are instantly connected to the dashboard.
+1.  **Open the URL**: Navigate to your Droplet's IP in the browser.
+2.  **Enter Basic Auth**: Browser prompts for Username / Password (provided by the installer).
+3.  **Paste the Gateway Token**: In the dashboard's connection panel, paste the Gateway Token and click **Connect**.
 
-(No SSL warnings. No manual token pasting.)
-
-The installer will display your **Magic Link**, **Username**, and **Password** at the end of the process. **Save these!**
+The installer will display your **URL**, **Basic Auth credentials**, and **Gateway Token** at the end of the process. **Save these!**
 
 ## What's in the Box
 

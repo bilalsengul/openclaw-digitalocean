@@ -166,10 +166,10 @@
     *   *Pass Criteria*: Page loads, Green Lock (Valid Cert), Basic Auth Prompt.
 
 4.  **Final Report**:
-    *   **Magic Login Link**: `https://<DROPLET_IP>/#token=$TOKEN`
+    *   **Dashboard URL**: `https://<DROPLET_IP>`
     *   **Basic Auth**: Username: `admin`, Password: `DASHBOARD_PASS`
     *   **Gateway Token**: `$TOKEN`
-    *   *Instructions*: "Click the Magic Link, enter Basic Auth credentials, and you will be automatically logged in."
+    *   *Instructions*: "Open the URL, enter Basic Auth credentials, then paste the Gateway Token in the dashboard's connection panel and click Connect."
 
 ---
 **Troubleshooting Notes**:
