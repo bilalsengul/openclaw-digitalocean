@@ -26,7 +26,7 @@ if [ ! -f "$STATE_DIR/openclaw.json" ]; then
 {
   "gateway": {
     "mode": "local",
-    "bind": "lan",
+    "bind": "public",
     "controlUi": {
       "allowInsecureAuth": true,
       "dangerouslyDisableDeviceAuth": true
