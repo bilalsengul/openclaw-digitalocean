@@ -21,6 +21,9 @@ APP_DIR="/app"
 if [ ! -f "$STATE_DIR/openclaw.json" ]; then
   echo "🔧 First run — generating openclaw.json..."
   mkdir -p "$STATE_DIR"
+  mkdir -p "$STATE_DIR/agents/main/sessions"
+  mkdir -p "$STATE_DIR/credentials"
+  chmod 700 "$STATE_DIR"
 
   cat > "$STATE_DIR/openclaw.json" <<'JSON'
 {
@@ -74,13 +77,7 @@ JSON
     echo "  ℹ️  GRADIENT_API_KEY not set — configure a model provider via the UI"
   fi
 
-  # ── Let OpenClaw apply auto-detected fixes ─────────────────────
-  openclaw doctor --fix 2>/dev/null || true
-
-  # ── Generate gateway auth token (AFTER doctor --fix) ───────────
-  # SECURITY: This prevents unauthorized access to the gateway API.
-  # Generated AFTER doctor --fix to prevent the doctor from stripping it.
-  # The deploying agent reads this token from container logs post-boot.
+  # ── Generate gateway auth token (BEFORE doctor) ────────────────
   GW_TOKEN=$(head -c 32 /dev/urandom | base64 | tr -d '=/+' | head -c 32)
   jq --arg t "$GW_TOKEN" '.gateway.auth.token = $t | .gateway.auth.mode = "token"' \
     "$STATE_DIR/openclaw.json" > "$STATE_DIR/openclaw.json.tmp" \
@@ -89,6 +86,12 @@ JSON
   echo ""
   echo "  OPENCLAW_GATEWAY_TOKEN=$GW_TOKEN"
   echo ""
+
+  # ── Fix file permissions before doctor ─────────────────────────
+  chmod 600 "$STATE_DIR/openclaw.json"
+
+  # ── Let OpenClaw apply auto-detected fixes ─────────────────────
+  openclaw doctor --fix 2>/dev/null || true
 
   # ── Configure exec allowlist ───────────────────────────────────
   # SECURITY: Only allow specific scripts, not arbitrary commands.
