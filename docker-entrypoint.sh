@@ -106,6 +106,64 @@ JSON
   echo "  ✓ openclaw.json created"
 fi
 
+# ── 1b. Always: configure channels from env vars ────────────────
+# Patches openclaw.json with Discord and WhatsApp config on every
+# start, so env var changes take effect without wiping the volume.
+
+CONFIG="$STATE_DIR/openclaw.json"
+
+# ── Discord channel ──────────────────────────────────────────────
+if [ -n "${DISCORD_BOT_TOKEN:-}" ]; then
+  echo "  🔧 Configuring Discord channel..."
+  jq '.channels.discord = {
+    "enabled": true,
+    "token": { "source": "env", "provider": "default", "id": "DISCORD_BOT_TOKEN" }
+  }' "$CONFIG" > "$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
+  chmod 600 "$CONFIG"
+  echo "  ✓ Discord channel configured"
+else
+  echo "  ℹ️  DISCORD_BOT_TOKEN not set — skipping Discord"
+fi
+
+# ── Telegram channel ─────────────────────────────────────────────
+if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
+  echo "  🔧 Configuring Telegram channel..."
+  jq '.channels.telegram = {
+    "enabled": true,
+    "botToken": { "source": "env", "provider": "default", "id": "TELEGRAM_BOT_TOKEN" }
+  }' "$CONFIG" > "$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
+  chmod 600 "$CONFIG"
+  echo "  ✓ Telegram channel configured"
+else
+  echo "  ℹ️  TELEGRAM_BOT_TOKEN not set — skipping Telegram"
+fi
+
+# ── WhatsApp channel ─────────────────────────────────────────────
+if [ "${WHATSAPP_ENABLED:-false}" = "true" ]; then
+  echo "  🔧 Configuring WhatsApp channel..."
+  ALLOW_FROM="${WHATSAPP_ALLOW_FROM:-}"
+  if [ -n "$ALLOW_FROM" ]; then
+    # Convert comma-separated numbers to JSON array
+    ALLOW_JSON=$(echo "$ALLOW_FROM" | jq -R 'split(",") | map(gsub("\\s"; ""))')
+  else
+    ALLOW_JSON="[]"
+  fi
+  jq --argjson allow "$ALLOW_JSON" '.channels.whatsapp = {
+    "dmPolicy": "pairing",
+    "allowFrom": $allow,
+    "groupPolicy": "allowlist",
+    "groups": { "*": { "requireMention": true } },
+    "sendReadReceipts": true,
+    "reactionLevel": "minimal",
+    "ackReaction": { "emoji": "👀", "direct": true, "group": "mentions" },
+    "mediaMaxMb": 50
+  }' "$CONFIG" > "$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
+  chmod 600 "$CONFIG"
+  echo "  ✓ WhatsApp channel configured (pair via Control UI)"
+else
+  echo "  ℹ️  WHATSAPP_ENABLED not set — skipping WhatsApp"
+fi
+
 # ── 2. Always: sync skills and data ─────────────────────────────
 echo "📋 Syncing skills and data..."
 
