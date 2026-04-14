@@ -26,13 +26,16 @@ if [ ! -f "$STATE_DIR/openclaw.json" ]; then
 {
   "gateway": {
     "mode": "local",
-    "bind": "public",
+    "bind": "custom",
+    "customBindHost": "0.0.0.0",
     "controlUi": {
       "allowInsecureAuth": true,
-      "dangerouslyDisableDeviceAuth": true
+      "dangerouslyDisableDeviceAuth": true,
+      "dangerouslyAllowHostHeaderOriginFallback": true
     },
     "trustedProxies": [
       "172.16.0.0/12",
+      "10.0.0.0/8",
       "127.0.0.1"
     ]
   },

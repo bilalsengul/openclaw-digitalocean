@@ -57,10 +57,10 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN mkdir -p /home/openclaw/.openclaw && chown openclaw:openclaw /home/openclaw/.openclaw
 VOLUME /home/openclaw/.openclaw
 
-EXPOSE 3120
+EXPOSE 18789
 
 # Run as non-root user
 USER openclaw
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["openclaw", "gateway"]
+CMD ["openclaw", "gateway", "--foreground"]
