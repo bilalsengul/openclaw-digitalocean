@@ -63,4 +63,4 @@ EXPOSE 18789
 USER openclaw
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["openclaw", "gateway", "--foreground"]
+CMD ["openclaw", "gateway", "run"]
